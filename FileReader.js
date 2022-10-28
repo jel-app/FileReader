@@ -105,7 +105,7 @@
 
 
       // The stream exists, do nothing more
-      if (file.stream) {
+      if (file.stream && typeof(file.stream) !== 'function') {
         return;
       }
 
@@ -169,10 +169,6 @@
       var stream = file.stream,
         buffers = [],
         chunked = self.nodeChunkedEncoding;
-
-      if (typeof stream === 'function') {
-        stream = Readable.fromWeb(file.stream());
-      }
 
       buffers.dataLength = 0;
 
