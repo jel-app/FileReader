@@ -8,6 +8,7 @@
 
   var fs = require("fs")
     , EventEmitter = require("events").EventEmitter
+    , Readable = require("stream").Readable
     ;
 
   function doop(fn, args, context) {
@@ -119,6 +120,17 @@
         return;
       }
 
+      if (file.arrayBuffer) {
+        process.nextTick(function () {
+          file.arrayBuffer().then(function (buffer) {
+            stream.emit('data', file.buffer)
+            stream.emit('end')
+          })
+        })
+
+        file.stream = stream
+        return
+      }
 
       // Create a read stream from a file
       if (file.path) {
@@ -152,12 +164,15 @@
     });
 
 
-
     // Map `error`, `progress`, `load`, and `loadend`
     function mapStreamToEmitter(format, encoding) {
       var stream = file.stream,
         buffers = [],
         chunked = self.nodeChunkedEncoding;
+
+      if (typeof stream === 'function') {
+        stream = Readable.fromWeb(file.stream());
+      }
 
       buffers.dataLength = 0;
 
@@ -262,7 +277,7 @@
 
     function readFile(_file, format, encoding) {
       file = _file;
-      if (!file || !file.name || !(file.path || file.stream || file.buffer)) {
+      if (!file || !(file.name || file.arrayBuffer) || !(file.path || file.stream || file.buffer || file.arrayBuffer)) {
         throw new Error("cannot read as File: " + JSON.stringify(file));
       }
       if (0 !== self.readyState) {
