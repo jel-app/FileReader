@@ -123,7 +123,7 @@
       if (file.arrayBuffer) {
         process.nextTick(function () {
           file.arrayBuffer().then(function (buffer) {
-            stream.emit('data', file.buffer)
+            stream.emit('data', buffer)
             stream.emit('end')
           })
         })
